@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.io Test</title>
+    <!-- Load socket.io client from CDN -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; width: 200px; }
+        #log { 
+            margin-top: 20px; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            height: 300px; 
+            overflow-y: auto;
+            background-color: #f5f5f5;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Socket.io Connection Test</h1>
+    
+    <div>
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn">Disconnect</button>
+        <span id="connectionStatus">Disconnected</span>
+    </div>
+    
+    <div style="margin-top: 15px;">
+        <input type="text" id="roomInput" placeholder="Enter room ID">
+        <button id="joinRoomBtn">Join Room</button>
+    </div>
+    
+    <div id="log"></div>
+    
+    <script>
+        // DOM elements
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        const roomInput = document.getElementById('roomInput');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const logElement = document.getElementById('log');
+        
+        // Socket.io instance
+        let socket = null;
+        
+        // Logging function
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = type;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logElement.appendChild(entry);
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[${type}]`, message);
+        }
+        
+        // Connect to the server
+        connectBtn.addEventListener('click', () => {
+            if (socket) {
+                log('Already connected', 'error');
+                return;
+            }
+            
+            log('Connecting to server...', 'info');
+            
+            // Create socket connection with all transport options
+            socket = io('http://localhost:3004', {
+                transports: ['websocket', 'polling'],
+                reconnection: true,
+                timeout: 10000
+            });
+            
+            // Connection events
+            socket.on('connect', () => {
+                connectionStatus.textContent = `Connected: ${socket.id}`;
+                log(`Connected with ID: ${socket.id}`, 'success');
+            });
+            
+            socket.on('disconnect', (reason) => {
+                connectionStatus.textContent = 'Disconnected';
+                log(`Disconnected: ${reason}`, 'error');
+                socket = null;
+            });
+            
+            socket.on('connect_error', (error) => {
+                log(`Connection error: ${error.message}`, 'error');
+            });
+            
+            socket.on('connect_timeout', () => {
+                log('Connection timeout', 'error');
+            });
+            
+            // Room events
+            socket.on('room-joined', (data) => {
+                log(`Room joined: ${JSON.stringify(data)}`, 'success');
+            });
+            
+            socket.on('room-full', () => {
+                log('Room is full', 'error');
+            });
+            
+            socket.on('user-connected', (data) => {
+                log(`User connected to room: ${JSON.stringify(data)}`, 'info');
+            });
+            
+            socket.on('user-disconnected', (data) => {
+                log(`User disconnected from room: ${JSON.stringify(data)}`, 'info');
+            });
+        });
+        
+        // Disconnect from the server
+        disconnectBtn.addEventListener('click', () => {
+            if (!socket) {
+                log('Not connected', 'error');
+                return;
+            }
+            
+            socket.disconnect();
+            connectionStatus.textContent = 'Disconnected';
+            log('Manually disconnected', 'info');
+        });
+        
+        // Join a room
+        joinRoomBtn.addEventListener('click', () => {
+            if (!socket) {
+                log('Not connected. Please connect first.', 'error');
+                return;
+            }
+            
+            const roomId = roomInput.value.trim();
+            if (!roomId) {
+                log('Please enter a room ID', 'error');
+                return;
+            }
+            
+            log(`Sending join-room event for room: ${roomId}`, 'info');
+            socket.emit('join-room', roomId);
+        });
+    </script>
+</body>
+</html>
