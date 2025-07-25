@@ -28,7 +28,7 @@ function App() {
   // Initialize socket connection
   useEffect(() => {
     // Create socket connection
-    const SOCKET_SERVER_URL = 'http://localhost:3001';
+    const SOCKET_SERVER_URL = 'https://yt-sync-backend.onrender.com';
     const socket = io(SOCKET_SERVER_URL, {
       transports: ['websocket', 'polling'],
       reconnection: true,
