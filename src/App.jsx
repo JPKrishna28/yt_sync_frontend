@@ -4,7 +4,7 @@ import RoomJoinForm from './components/RoomJoinForm';
 import YouTubePlayer from './components/YouTubePlayer';
 import VideoControls from './components/VideoControls';
 import YouTubeSearch from './components/YouTubeSearch';
-import Chat from './components/Chat';
+import VideoChat from './components/VideoChat';
 
 // Connection to the WebSocket server with explicit options
 // Only create the socket when the component mounts
@@ -291,7 +291,7 @@ function App() {
           </div>
           
           <div className="chat-section">
-            <Chat 
+            <VideoChat 
               socket={socketRef.current}
               roomId={roomId}
               userId={userId}
