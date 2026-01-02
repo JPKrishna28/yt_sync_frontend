@@ -80,10 +80,10 @@ function App() {
       }
     });
     
-    // Room is full (2 users max)
+    // Room is full (10 users max)
     socket.on('room-full', () => {
       console.log('Room full event received');
-      setStatusMessage('Room is full (max 2 users)');
+      setStatusMessage('Room is full (max 10 users)');
     });
     
     // User connected/disconnected events
